@@ -9,9 +9,10 @@ import qrcode
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "change-this-secret-key")
+
 DB_NAME = "attendance.db"
-SCHOOL_NAME = "Knight Gale University"
-SCHOOL_LOGO_PATH = "/static/logo.png"  # put your real logo here
+SCHOOL_NAME = "St. Jude Thaddeus Institute of Technology"
+SCHOOL_LOGO_PATH = "/static/logo.png"
 
 
 # -----------------------------
@@ -27,8 +28,7 @@ def init_db():
     conn = get_db_connection()
     cur = conn.cursor()
 
-    cur.execute(
-        """
+    cur.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             full_name TEXT NOT NULL,
@@ -36,22 +36,18 @@ def init_db():
             password_hash TEXT NOT NULL,
             role TEXT NOT NULL CHECK(role IN ('admin', 'teacher'))
         )
-        """
-    )
+    """)
 
-    cur.execute(
-        """
+    cur.execute("""
         CREATE TABLE IF NOT EXISTS students (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             student_id TEXT NOT NULL UNIQUE,
             full_name TEXT NOT NULL,
             grade_section TEXT NOT NULL
         )
-        """
-    )
+    """)
 
-    cur.execute(
-        """
+    cur.execute("""
         CREATE TABLE IF NOT EXISTS attendance (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             student_id INTEGER NOT NULL,
@@ -64,8 +60,7 @@ def init_db():
             FOREIGN KEY(marked_by) REFERENCES users(id),
             UNIQUE(student_id, attendance_date)
         )
-        """
-    )
+    """)
 
     admin = cur.execute("SELECT * FROM users WHERE username = ?", ("admin",)).fetchone()
     if not admin:
@@ -121,25 +116,27 @@ def render_page(title, content, extra_head=""):
         content=content,
         school_name=SCHOOL_NAME,
         school_logo_path=SCHOOL_LOGO_PATH,
-        extra_head=extra_head,
+        extra_head=extra_head
     )
 
 
 BASE_HTML = """
 <!DOCTYPE html>
-<html lang=\"en\">
+<html lang="en">
 <head>
-    <meta charset=\"UTF-8\">
-    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ title }}</title>
     <style>
         * { box-sizing: border-box; }
+
         body {
             margin: 0;
             font-family: Arial, Helvetica, sans-serif;
             background: linear-gradient(135deg, #fff0f7, #ffd9eb, #fff8fc);
             color: #412432;
         }
+
         .navbar {
             background: linear-gradient(90deg, #ff4fa1, #d81b77);
             color: white;
@@ -151,7 +148,13 @@ BASE_HTML = """
             flex-wrap: wrap;
             box-shadow: 0 8px 20px rgba(216, 27, 119, 0.25);
         }
-        .brand { display: flex; align-items: center; gap: 12px; }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
         .brand img {
             width: 46px;
             height: 46px;
@@ -160,8 +163,17 @@ BASE_HTML = """
             background: white;
             padding: 4px;
         }
-        .brand strong { display: block; font-size: 18px; }
-        .brand span { font-size: 12px; opacity: 0.95; }
+
+        .brand strong {
+            display: block;
+            font-size: 18px;
+        }
+
+        .brand span {
+            font-size: 12px;
+            opacity: 0.95;
+        }
+
         .nav-links a {
             color: white;
             text-decoration: none;
@@ -169,11 +181,13 @@ BASE_HTML = """
             margin-right: 12px;
             font-size: 14px;
         }
+
         .container {
             max-width: 1200px;
             margin: 22px auto;
             padding: 0 16px 30px;
         }
+
         .card {
             background: rgba(255,255,255,0.97);
             border: 1px solid #ffc4dd;
@@ -182,16 +196,19 @@ BASE_HTML = """
             box-shadow: 0 12px 30px rgba(0,0,0,0.08);
             margin-bottom: 20px;
         }
+
         .grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 18px;
         }
+
         .stats-number {
             font-size: 34px;
             color: #d81b77;
             font-weight: bold;
         }
+
         .login-wrap {
             min-height: 100vh;
             display: flex;
@@ -199,6 +216,7 @@ BASE_HTML = """
             justify-content: center;
             padding: 20px;
         }
+
         .login-card {
             max-width: 480px;
             width: 100%;
@@ -208,14 +226,32 @@ BASE_HTML = """
             border: 1px solid #ffc4dd;
             box-shadow: 0 16px 40px rgba(216, 27, 119, 0.15);
         }
-        .center { text-align: center; }
+
+        .center {
+            text-align: center;
+        }
+
         .logo-big {
-            width: 86px; height: 86px; object-fit: cover; border-radius: 50%;
-            background: white; padding: 6px; margin: 0 auto 14px; display: block;
+            width: 86px;
+            height: 86px;
+            object-fit: cover;
+            border-radius: 50%;
+            background: white;
+            padding: 6px;
+            margin: 0 auto 14px;
+            display: block;
             box-shadow: 0 8px 20px rgba(216, 27, 119, 0.15);
         }
-        h1, h2, h3 { margin-top: 0; }
-        .muted { color: #8f6175; font-size: 13px; }
+
+        h1, h2, h3 {
+            margin-top: 0;
+        }
+
+        .muted {
+            color: #8f6175;
+            font-size: 13px;
+        }
+
         input, select, textarea, button {
             width: 100%;
             padding: 12px;
@@ -226,11 +262,13 @@ BASE_HTML = """
             font-size: 14px;
             background: white;
         }
+
         input:focus, select:focus, textarea:focus {
             outline: none;
             border-color: #ff4fa1;
             box-shadow: 0 0 0 3px rgba(255, 79, 161, 0.14);
         }
+
         button, .btn-link {
             background: linear-gradient(90deg, #ff4fa1, #d81b77);
             color: white;
@@ -242,8 +280,16 @@ BASE_HTML = """
             padding: 12px 16px;
             border-radius: 12px;
         }
-        .btn-gray { background: #7f5a6a; }
-        .btn-link { margin-right: 8px; margin-top: 6px; }
+
+        .btn-gray {
+            background: #7f5a6a;
+        }
+
+        .btn-link {
+            margin-right: 8px;
+            margin-top: 6px;
+        }
+
         .flash {
             background: #ffe3f0;
             border: 1px solid #ffc4dd;
@@ -252,9 +298,24 @@ BASE_HTML = """
             padding: 12px 14px;
             margin-bottom: 14px;
         }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { padding: 12px 10px; border-bottom: 1px solid #f6d4e3; text-align: left; }
-        th { background: #fff0f7; color: #a11357; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th, td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #f6d4e3;
+            text-align: left;
+        }
+
+        th {
+            background: #fff0f7;
+            color: #a11357;
+        }
+
         .badge {
             display: inline-block;
             padding: 7px 11px;
@@ -262,15 +323,35 @@ BASE_HTML = """
             font-size: 12px;
             font-weight: bold;
         }
-        .present { background: #dcfce7; color: #166534; }
-        .late { background: #fef3c7; color: #92400e; }
-        .absent { background: #fee2e2; color: #991b1b; }
-        .actions a { color: #d81b77; text-decoration: none; font-weight: bold; margin-right: 10px; }
+
+        .present {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .late {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .absent {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .actions a {
+            color: #d81b77;
+            text-decoration: none;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
         .qr-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
             gap: 16px;
         }
+
         .qr-card {
             background: white;
             border: 1px solid #ffd5e6;
@@ -278,46 +359,77 @@ BASE_HTML = """
             padding: 16px;
             text-align: center;
         }
-        .qr-card img { max-width: 180px; width: 100%; }
+
+        .qr-card img {
+            max-width: 180px;
+            width: 100%;
+        }
+
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+        }
+
         @media (max-width: 700px) {
-            .navbar { flex-direction: column; align-items: flex-start; }
-            table, thead, tbody, th, td, tr { display: block; }
-            thead { display: none; }
-            tr { background: white; border: 1px solid #f6d4e3; border-radius: 14px; margin-bottom: 12px; padding: 10px; }
-            td { border: none; padding: 8px 0; }
+            .navbar {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            table, thead, tbody, th, td, tr {
+                display: block;
+            }
+
+            thead {
+                display: none;
+            }
+
+            tr {
+                background: white;
+                border: 1px solid #f6d4e3;
+                border-radius: 14px;
+                margin-bottom: 12px;
+                padding: 10px;
+            }
+
+            td {
+                border: none;
+                padding: 8px 0;
+            }
         }
     </style>
     {{ extra_head|safe }}
 </head>
 <body>
     {% if session.get('user_id') %}
-    <div class=\"navbar\">
-        <div class=\"brand\">
-            <img src=\"{{ school_logo_path }}\" alt=\"School Logo\" onerror=\"this.style.display='none'\">
+    <div class="navbar no-print">
+        <div class="brand">
+            <img src="{{ school_logo_path }}" alt="School Logo" onerror="this.style.display='none'">
             <div>
                 <strong>{{ school_name }}</strong>
                 <span>{{ session.get('role','').title() }} Portal</span>
             </div>
         </div>
-        <div class=\"nav-links\">
-            <a href=\"{{ url_for('dashboard') }}\">Dashboard</a>
-            <a href=\"{{ url_for('students') }}\">Students</a>
-            <a href=\"{{ url_for('mark_attendance') }}\">Manual Attendance</a>
-            <a href=\"{{ url_for('qr_attendance') }}\">QR Attendance</a>
-            <a href=\"{{ url_for('reports') }}\">Reports</a>
+        <div class="nav-links">
+            <a href="{{ url_for('dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('students') }}">Students</a>
+            <a href="{{ url_for('mark_attendance') }}">Manual Attendance</a>
+            <a href="{{ url_for('qr_attendance') }}">QR Attendance</a>
+            <a href="{{ url_for('reports') }}">Reports</a>
             {% if session.get('role') == 'admin' %}
-            <a href=\"{{ url_for('admin_panel') }}\">Admin Panel</a>
+            <a href="{{ url_for('admin_panel') }}">Admin Panel</a>
             {% endif %}
-            <a href=\"{{ url_for('logout') }}\">Logout</a>
+            <a href="{{ url_for('logout') }}">Logout</a>
         </div>
     </div>
     {% endif %}
 
-    <div class=\"container\">
+    <div class="container">
         {% with messages = get_flashed_messages() %}
             {% if messages %}
                 {% for message in messages %}
-                    <div class=\"flash\">{{ message }}</div>
+                    <div class="flash no-print">{{ message }}</div>
                 {% endfor %}
             {% endif %}
         {% endwith %}
@@ -350,24 +462,27 @@ def login():
             session["role"] = user["role"]
             flash("Login successful.")
             return redirect(url_for("dashboard"))
+
         flash("Invalid username or password.")
 
     content = f"""
-    <div class=\"login-wrap\">
-        <div class=\"login-card\">
-            <img class=\"logo-big\" src=\"{SCHOOL_LOGO_PATH}\" alt=\"School Logo\" onerror=\"this.style.display='none'\">
-            <div class=\"center\">
+    <div class="login-wrap">
+        <div class="login-card">
+            <img class="logo-big" src="{SCHOOL_LOGO_PATH}" alt="School Logo" onerror="this.style.display='none'">
+            <div class="center">
                 <h1>{SCHOOL_NAME}</h1>
-                <p class=\"muted\">Pink Attendance System with Admin Panel and QR Attendance</p>
-                <p class=\"muted\"><strong>Admin:</strong> admin / admin123</p>
-                <p class=\"muted\"><strong>Teacher:</strong> teacher / teacher123</p>
+                <p class="muted">Pink Attendance System with Admin Panel and QR Attendance</p>
+                <p class="muted"><strong>Admin:</strong> admin / admin123</p>
+                <p class="muted"><strong>Teacher:</strong> teacher / teacher123</p>
             </div>
-            <form method=\"POST\">
+            <form method="POST">
                 <label>Username</label>
-                <input type=\"text\" name=\"username\" required>
+                <input type="text" name="username" required>
+
                 <label>Password</label>
-                <input type=\"password\" name=\"password\" required>
-                <button type=\"submit\">Login</button>
+                <input type="password" name="password" required>
+
+                <button type="submit">Login</button>
             </form>
         </div>
     </div>
@@ -392,24 +507,40 @@ def dashboard():
 
     conn = get_db_connection()
     today = str(date.today())
+
     total_students = conn.execute("SELECT COUNT(*) AS count FROM students").fetchone()["count"]
     total_teachers = conn.execute("SELECT COUNT(*) AS count FROM users WHERE role = 'teacher'").fetchone()["count"]
-    present_count = conn.execute("SELECT COUNT(*) AS count FROM attendance WHERE attendance_date = ? AND status = 'Present'", (today,)).fetchone()["count"]
-    late_count = conn.execute("SELECT COUNT(*) AS count FROM attendance WHERE attendance_date = ? AND status = 'Late'", (today,)).fetchone()["count"]
-    absent_count = conn.execute("SELECT COUNT(*) AS count FROM attendance WHERE attendance_date = ? AND status = 'Absent'", (today,)).fetchone()["count"]
-    recent = conn.execute(
-        """
+    present_count = conn.execute(
+        "SELECT COUNT(*) AS count FROM attendance WHERE attendance_date = ? AND status = 'Present'",
+        (today,)
+    ).fetchone()["count"]
+    late_count = conn.execute(
+        "SELECT COUNT(*) AS count FROM attendance WHERE attendance_date = ? AND status = 'Late'",
+        (today,)
+    ).fetchone()["count"]
+    absent_count = conn.execute(
+        "SELECT COUNT(*) AS count FROM attendance WHERE attendance_date = ? AND status = 'Absent'",
+        (today,)
+    ).fetchone()["count"]
+
+    recent = conn.execute("""
         SELECT a.attendance_date, a.status, a.method, s.student_id, s.full_name, s.grade_section
         FROM attendance a
         JOIN students s ON s.id = a.student_id
         ORDER BY a.attendance_date DESC, a.id DESC
         LIMIT 10
-        """
-    ).fetchall()
+    """).fetchall()
     conn.close()
 
     recent_rows = "".join(
-        f"<tr><td>{escape_html(r['attendance_date'])}</td><td>{escape_html(r['student_id'])}</td><td>{escape_html(r['full_name'])}</td><td>{escape_html(r['grade_section'])}</td><td>{status_badge(r['status'])}</td><td>{escape_html(r['method'])}</td></tr>"
+        f"<tr>"
+        f"<td>{escape_html(r['attendance_date'])}</td>"
+        f"<td>{escape_html(r['student_id'])}</td>"
+        f"<td>{escape_html(r['full_name'])}</td>"
+        f"<td>{escape_html(r['grade_section'])}</td>"
+        f"<td>{status_badge(r['status'])}</td>"
+        f"<td>{escape_html(r['method'])}</td>"
+        f"</tr>"
         for r in recent
     ) or "<tr><td colspan='6'>No attendance records yet.</td></tr>"
 
@@ -418,27 +549,36 @@ def dashboard():
         admin_btn = f'<a class="btn-link btn-gray" href="{url_for("admin_panel")}">Open Admin Panel</a>'
 
     content = f"""
-    <div class=\"card\">
+    <div class="card">
         <h1>Welcome, {escape_html(session.get('full_name'))}</h1>
-        <p class=\"muted\">Today: {today}</p>
-        <a class=\"btn-link\" href=\"{url_for('mark_attendance')}\">Manual Attendance</a>
-        <a class=\"btn-link\" href=\"{url_for('qr_attendance')}\">QR Attendance</a>
-        <a class=\"btn-link btn-gray\" href=\"{url_for('student_qr_cards')}\">Student QR Cards</a>
+        <p class="muted">Today: {today}</p>
+        <a class="btn-link" href="{url_for('mark_attendance')}">Manual Attendance</a>
+        <a class="btn-link" href="{url_for('qr_attendance')}">QR Attendance</a>
+        <a class="btn-link btn-gray" href="{url_for('student_qr_cards')}">Student QR Cards</a>
         {admin_btn}
     </div>
 
-    <div class=\"grid\">
-        <div class=\"card\"><h3>Total Students</h3><div class=\"stats-number\">{total_students}</div></div>
-        <div class=\"card\"><h3>Total Teachers</h3><div class=\"stats-number\">{total_teachers}</div></div>
-        <div class=\"card\"><h3>Present Today</h3><div class=\"stats-number\">{present_count}</div></div>
-        <div class=\"card\"><h3>Late Today</h3><div class=\"stats-number\">{late_count}</div></div>
-        <div class=\"card\"><h3>Absent Today</h3><div class=\"stats-number\">{absent_count}</div></div>
+    <div class="grid">
+        <div class="card"><h3>Total Students</h3><div class="stats-number">{total_students}</div></div>
+        <div class="card"><h3>Total Teachers</h3><div class="stats-number">{total_teachers}</div></div>
+        <div class="card"><h3>Present Today</h3><div class="stats-number">{present_count}</div></div>
+        <div class="card"><h3>Late Today</h3><div class="stats-number">{late_count}</div></div>
+        <div class="card"><h3>Absent Today</h3><div class="stats-number">{absent_count}</div></div>
     </div>
 
-    <div class=\"card\">
+    <div class="card">
         <h2>Recent Records</h2>
         <table>
-            <thead><tr><th>Date</th><th>Student ID</th><th>Name</th><th>Grade/Section</th><th>Status</th><th>Method</th></tr></thead>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Student ID</th>
+                    <th>Name</th>
+                    <th>Grade/Section</th>
+                    <th>Status</th>
+                    <th>Method</th>
+                </tr>
+            </thead>
             <tbody>{recent_rows}</tbody>
         </table>
     </div>
@@ -455,6 +595,7 @@ def admin_panel():
         return redirect(url_for("dashboard"))
 
     conn = get_db_connection()
+
     if request.method == "POST":
         full_name = request.form.get("full_name", "").strip()
         username = request.form.get("username", "").strip()
@@ -477,34 +618,56 @@ def admin_panel():
     users = conn.execute("SELECT * FROM users ORDER BY role ASC, full_name ASC").fetchall()
     conn.close()
 
-    user_rows = "".join(
-        f"<tr><td>{escape_html(u['full_name'])}</td><td>{escape_html(u['username'])}</td><td>{escape_html(u['role'])}</td><td class='actions'>{'' if u['username']=='admin' else f'<a href="/delete_user/{u['id']}" onclick="return confirm(\'Delete this user?\')">Delete</a>'}</td></tr>"
-        for u in users
-    )
+    rows = []
+    for u in users:
+        action = ""
+        if u["username"] != "admin":
+            action = f'<a href="/delete_user/{u["id"]}" onclick="return confirm(\'Delete this user?\')">Delete</a>'
+        rows.append(
+            f"<tr>"
+            f"<td>{escape_html(u['full_name'])}</td>"
+            f"<td>{escape_html(u['username'])}</td>"
+            f"<td>{escape_html(u['role'])}</td>"
+            f"<td class='actions'>{action}</td>"
+            f"</tr>"
+        )
+    user_rows = "".join(rows)
 
     content = f"""
-    <div class=\"grid\">
-        <div class=\"card\">
+    <div class="grid">
+        <div class="card">
             <h2>Create User</h2>
-            <form method=\"POST\">
+            <form method="POST">
                 <label>Full Name</label>
-                <input type=\"text\" name=\"full_name\" required>
+                <input type="text" name="full_name" required>
+
                 <label>Username</label>
-                <input type=\"text\" name=\"username\" required>
+                <input type="text" name="username" required>
+
                 <label>Password</label>
-                <input type=\"password\" name=\"password\" required>
+                <input type="password" name="password" required>
+
                 <label>Role</label>
-                <select name=\"role\">
-                    <option value=\"teacher\">Teacher</option>
-                    <option value=\"admin\">Admin</option>
+                <select name="role">
+                    <option value="teacher">Teacher</option>
+                    <option value="admin">Admin</option>
                 </select>
-                <button type=\"submit\">Create User</button>
+
+                <button type="submit">Create User</button>
             </form>
         </div>
-        <div class=\"card\">
+
+        <div class="card">
             <h2>System Users</h2>
             <table>
-                <thead><tr><th>Name</th><th>Username</th><th>Role</th><th>Action</th></tr></thead>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Username</th>
+                        <th>Role</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
                 <tbody>{user_rows}</tbody>
             </table>
         </div>
@@ -520,10 +683,12 @@ def delete_user(user_id):
 
     conn = get_db_connection()
     user = conn.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
+
     if user and user["username"] != "admin":
         conn.execute("DELETE FROM users WHERE id = ?", (user_id,))
         conn.commit()
         flash("User deleted successfully.")
+
     conn.close()
     return redirect(url_for("admin_panel"))
 
@@ -537,10 +702,12 @@ def students():
         return redirect(url_for("login"))
 
     conn = get_db_connection()
+
     if request.method == "POST":
         student_id = request.form.get("student_id", "").strip()
         full_name = request.form.get("full_name", "").strip()
         grade_section = request.form.get("grade_section", "").strip()
+
         if not student_id or not full_name or not grade_section:
             flash("Please fill in all student fields.")
         else:
@@ -558,28 +725,48 @@ def students():
     conn.close()
 
     rows = "".join(
-        f"<tr><td>{escape_html(s['student_id'])}</td><td>{escape_html(s['full_name'])}</td><td>{escape_html(s['grade_section'])}</td><td class='actions'><a href='/student_qr/{s['id']}' target='_blank'>QR</a><a href='/delete_student/{s['id']}' onclick=\"return confirm('Delete this student?')\">Delete</a></td></tr>"
+        f"<tr>"
+        f"<td>{escape_html(s['student_id'])}</td>"
+        f"<td>{escape_html(s['full_name'])}</td>"
+        f"<td>{escape_html(s['grade_section'])}</td>"
+        f"<td class='actions'>"
+        f"<a href='/student_qr/{s['id']}' target='_blank'>QR</a>"
+        f"<a href='/print_id/{s['id']}' target='_blank'>Print ID</a>"
+        f"<a href='/delete_student/{s['id']}' onclick=\"return confirm('Delete this student?')\">Delete</a>"
+        f"</td>"
+        f"</tr>"
         for s in all_students
     ) or "<tr><td colspan='4'>No students added yet.</td></tr>"
 
     content = f"""
-    <div class=\"grid\">
-        <div class=\"card\">
+    <div class="grid">
+        <div class="card">
             <h2>Add Student</h2>
-            <form method=\"POST\">
+            <form method="POST">
                 <label>Student ID</label>
-                <input type=\"text\" name=\"student_id\" required>
+                <input type="text" name="student_id" required>
+
                 <label>Full Name</label>
-                <input type=\"text\" name=\"full_name\" required>
+                <input type="text" name="full_name" required>
+
                 <label>Grade / Section</label>
-                <input type=\"text\" name=\"grade_section\" required>
-                <button type=\"submit\">Add Student</button>
+                <input type="text" name="grade_section" required>
+
+                <button type="submit">Add Student</button>
             </form>
         </div>
-        <div class=\"card\">
+
+        <div class="card">
             <h2>Student List</h2>
             <table>
-                <thead><tr><th>Student ID</th><th>Name</th><th>Grade / Section</th><th>Action</th></tr></thead>
+                <thead>
+                    <tr>
+                        <th>Student ID</th>
+                        <th>Name</th>
+                        <th>Grade / Section</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
                 <tbody>{rows}</tbody>
             </table>
         </div>
@@ -598,6 +785,7 @@ def delete_student(student_row_id):
     conn.execute("DELETE FROM students WHERE id = ?", (student_row_id,))
     conn.commit()
     conn.close()
+
     flash("Student deleted successfully.")
     return redirect(url_for("students"))
 
@@ -612,13 +800,17 @@ def mark_attendance():
 
     conn = get_db_connection()
     selected_date = request.form.get("attendance_date") if request.method == "POST" else str(date.today())
+
     if not selected_date:
         selected_date = str(date.today())
 
     if request.method == "POST":
-        for student in conn.execute("SELECT * FROM students ORDER BY full_name ASC").fetchall():
+        students_list = conn.execute("SELECT * FROM students ORDER BY full_name ASC").fetchall()
+
+        for student in students_list:
             status = request.form.get(f"status_{student['id']}", "Absent")
             remarks = request.form.get(f"remarks_{student['id']}", "").strip()
+
             existing = conn.execute(
                 "SELECT id FROM attendance WHERE student_id = ? AND attendance_date = ?",
                 (student["id"], selected_date)
@@ -634,47 +826,67 @@ def mark_attendance():
                     "INSERT INTO attendance (student_id, attendance_date, status, remarks, marked_by, method) VALUES (?, ?, ?, ?, ?, 'manual')",
                     (student["id"], selected_date, status, remarks, session["user_id"])
                 )
+
         conn.commit()
         flash(f"Attendance saved for {selected_date}.")
 
-    students = conn.execute("SELECT * FROM students ORDER BY full_name ASC").fetchall()
-    existing_records = conn.execute("SELECT * FROM attendance WHERE attendance_date = ?", (selected_date,)).fetchall()
-    attendance_map = {r['student_id']: r for r in existing_records}
+    students_list = conn.execute("SELECT * FROM students ORDER BY full_name ASC").fetchall()
+    existing_records = conn.execute(
+        "SELECT * FROM attendance WHERE attendance_date = ?",
+        (selected_date,)
+    ).fetchall()
     conn.close()
 
+    attendance_map = {r["student_id"]: r for r in existing_records}
+
     rows = ""
-    for student in students:
+    for student in students_list:
         current = attendance_map.get(student["id"])
         current_status = current["status"] if current else "Present"
         current_remarks = current["remarks"] if current else ""
+
         rows += f"""
         <tr>
             <td>{escape_html(student['student_id'])}</td>
             <td>{escape_html(student['full_name'])}</td>
             <td>{escape_html(student['grade_section'])}</td>
             <td>
-                <select name=\"status_{student['id']}\">
-                    <option value=\"Present\" {'selected' if current_status == 'Present' else ''}>Present</option>
-                    <option value=\"Late\" {'selected' if current_status == 'Late' else ''}>Late</option>
-                    <option value=\"Absent\" {'selected' if current_status == 'Absent' else ''}>Absent</option>
+                <select name="status_{student['id']}">
+                    <option value="Present" {'selected' if current_status == 'Present' else ''}>Present</option>
+                    <option value="Late" {'selected' if current_status == 'Late' else ''}>Late</option>
+                    <option value="Absent" {'selected' if current_status == 'Absent' else ''}>Absent</option>
                 </select>
             </td>
-            <td><input type=\"text\" name=\"remarks_{student['id']}\" value=\"{escape_html(current_remarks)}\"></td>
+            <td>
+                <input type="text" name="remarks_{student['id']}" value="{escape_html(current_remarks)}">
+            </td>
         </tr>
         """
-    rows = rows or "<tr><td colspan='5'>No students found.</td></tr>"
+
+    if not rows:
+        rows = "<tr><td colspan='5'>No students found.</td></tr>"
 
     content = f"""
-    <div class=\"card\">
+    <div class="card">
         <h2>Manual Attendance</h2>
-        <form method=\"POST\">
+        <form method="POST">
             <label>Select Date</label>
-            <input type=\"date\" name=\"attendance_date\" value=\"{selected_date}\" required>
+            <input type="date" name="attendance_date" value="{selected_date}" required>
+
             <table>
-                <thead><tr><th>Student ID</th><th>Name</th><th>Grade / Section</th><th>Status</th><th>Remarks</th></tr></thead>
+                <thead>
+                    <tr>
+                        <th>Student ID</th>
+                        <th>Name</th>
+                        <th>Grade / Section</th>
+                        <th>Status</th>
+                        <th>Remarks</th>
+                    </tr>
+                </thead>
                 <tbody>{rows}</tbody>
             </table>
-            <button type=\"submit\">Save Attendance</button>
+
+            <button type="submit">Save Attendance</button>
         </form>
     </div>
     """
@@ -690,14 +902,14 @@ def qr_attendance():
         return redirect(url_for("login"))
 
     extra_head = '<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>'
-    mark_url = url_for('qr_mark')
+    mark_url = url_for("qr_mark")
 
     content = f"""
-    <div class=\"card\">
+    <div class="card">
         <h2>QR Attendance Scanner</h2>
-        <p class=\"muted\">Scan the student's QR code. It will mark the student as Present for today.</p>
-        <div id=\"reader\" style=\"width: 100%; max-width: 500px; margin: auto;\"></div>
-        <p id=\"scan-result\" class=\"muted center\">Waiting for QR scan...</p>
+        <p class="muted">Scan the student's QR code. It will mark the student as Present for today.</p>
+        <div id="reader" style="width: 100%; max-width: 500px; margin: auto;"></div>
+        <p id="scan-result" class="muted center">Waiting for QR scan...</p>
     </div>
 
     <script>
@@ -720,7 +932,7 @@ def qr_attendance():
         Html5Qrcode.getCameras().then(devices => {{
             if (devices && devices.length) {{
                 html5QrCode.start(
-                    {{ facingMode: 'environment' }},
+                    {{ facingMode: "environment" }},
                     {{ fps: 10, qrbox: 250 }},
                     onScanSuccess
                 );
@@ -744,6 +956,7 @@ def qr_mark():
 
     conn = get_db_connection()
     student = conn.execute("SELECT * FROM students WHERE student_id = ?", (student_code,)).fetchone()
+
     if not student:
         conn.close()
         return "Student not found."
@@ -764,11 +977,16 @@ def qr_mark():
             "INSERT INTO attendance (student_id, attendance_date, status, remarks, marked_by, method) VALUES (?, ?, 'Present', '', ?, 'qr')",
             (student["id"], today, session["user_id"])
         )
+
     conn.commit()
     conn.close()
+
     return f"Attendance recorded: {student['full_name']} ({student['student_id']})"
 
 
+# -----------------------------
+# QR image generation
+# -----------------------------
 @app.route("/student_qr/<int:student_row_id>")
 def student_qr(student_row_id):
     if not login_required():
@@ -777,17 +995,80 @@ def student_qr(student_row_id):
     conn = get_db_connection()
     student = conn.execute("SELECT * FROM students WHERE id = ?", (student_row_id,)).fetchone()
     conn.close()
+
     if not student:
         abort(404)
 
     qr = qrcode.QRCode(box_size=10, border=4)
     qr.add_data(student["student_id"])
     qr.make(fit=True)
+
     img = qr.make_image(fill_color="black", back_color="white")
     buffer = io.BytesIO()
     img.save(buffer, format="PNG")
     buffer.seek(0)
+
     return send_file(buffer, mimetype="image/png")
+
+
+# -----------------------------
+# Printable student ID
+# -----------------------------
+@app.route("/print_id/<int:student_id>")
+def print_id(student_id):
+    if not login_required():
+        return redirect(url_for("login"))
+
+    conn = get_db_connection()
+    student = conn.execute("SELECT * FROM students WHERE id = ?", (student_id,)).fetchone()
+    conn.close()
+
+    if not student:
+        return "Student not found"
+
+    content = f"""
+    <div style="display:flex;justify-content:center;align-items:center;min-height:80vh;">
+        <div style="
+            width:320px;
+            min-height:500px;
+            background:white;
+            border-radius:20px;
+            box-shadow:0 10px 25px rgba(0,0,0,0.2);
+            padding:20px;
+            text-align:center;
+            border:3px solid #ff4fa1;
+        ">
+            <img src="{SCHOOL_LOGO_PATH}" alt="Logo" style="width:70px;height:70px;object-fit:cover;border-radius:50%;background:white;padding:4px;" onerror="this.style.display='none'">
+
+            <div style="font-size:14px;font-weight:bold;color:#d81b77;margin:10px 0;">
+                {SCHOOL_NAME}
+            </div>
+
+            <h3 style="margin:10px 0;">STUDENT ID</h3>
+
+            <div style="font-size:20px;font-weight:bold;margin-top:20px;">
+                {escape_html(student['full_name'])}
+            </div>
+
+            <div style="font-size:14px;color:#555;margin-top:8px;">
+                ID: {escape_html(student['student_id'])}
+            </div>
+
+            <div style="font-size:14px;color:#555;margin-top:5px;">
+                {escape_html(student['grade_section'])}
+            </div>
+
+            <div style="margin-top:20px;">
+                <img src="/student_qr/{student['id']}" width="150" alt="QR Code">
+            </div>
+
+            <div class="no-print" style="margin-top:20px;">
+                <button onclick="window.print()">Print ID</button>
+            </div>
+        </div>
+    </div>
+    """
+    return render_page("Print ID", content)
 
 
 @app.route("/student-qr-cards")
@@ -796,26 +1077,31 @@ def student_qr_cards():
         return redirect(url_for("login"))
 
     conn = get_db_connection()
-    students = conn.execute("SELECT * FROM students ORDER BY full_name ASC").fetchall()
+    students_list = conn.execute("SELECT * FROM students ORDER BY full_name ASC").fetchall()
     conn.close()
 
     cards = "".join(
-        f"<div class='qr-card'><img src='/student_qr/{s['id']}' alt='QR'><h3>{escape_html(s['full_name'])}</h3><p>{escape_html(s['student_id'])}</p><p class='muted'>{escape_html(s['grade_section'])}</p></div>"
-        for s in students
+        f"<div class='qr-card'>"
+        f"<img src='/student_qr/{s['id']}' alt='QR'>"
+        f"<h3>{escape_html(s['full_name'])}</h3>"
+        f"<p>{escape_html(s['student_id'])}</p>"
+        f"<p class='muted'>{escape_html(s['grade_section'])}</p>"
+        f"</div>"
+        for s in students_list
     ) or "<p>No students added yet.</p>"
 
     content = f"""
-    <div class=\"card\">
+    <div class="card">
         <h2>Student QR Cards</h2>
-        <p class=\"muted\">Each QR contains the student's ID code. Print these cards for QR attendance.</p>
-        <div class=\"qr-grid\">{cards}</div>
+        <p class="muted">Each QR contains the student's ID code. Print these cards for QR attendance.</p>
+        <div class="qr-grid">{cards}</div>
     </div>
     """
     return render_page("Student QR Cards", content)
 
 
 # -----------------------------
-# Reports + CSV Export
+# Reports + CSV export
 # -----------------------------
 @app.route("/reports", methods=["GET"])
 def reports():
@@ -823,39 +1109,58 @@ def reports():
         return redirect(url_for("login"))
 
     report_date = request.args.get("report_date", str(date.today()))
+
     conn = get_db_connection()
-    records = conn.execute(
-        """
-        SELECT a.attendance_date, a.status, a.remarks, a.method, s.student_id, s.full_name, s.grade_section, u.full_name AS marker_name
+    records = conn.execute("""
+        SELECT a.attendance_date, a.status, a.remarks, a.method,
+               s.student_id, s.full_name, s.grade_section,
+               u.full_name AS marker_name
         FROM attendance a
         JOIN students s ON a.student_id = s.id
         JOIN users u ON a.marked_by = u.id
         WHERE a.attendance_date = ?
         ORDER BY s.full_name ASC
-        """,
-        (report_date,)
-    ).fetchall()
+    """, (report_date,)).fetchall()
     conn.close()
 
     rows = "".join(
-        f"<tr><td>{escape_html(r['student_id'])}</td><td>{escape_html(r['full_name'])}</td><td>{escape_html(r['grade_section'])}</td><td>{status_badge(r['status'])}</td><td>{escape_html(r['remarks'] or '')}</td><td>{escape_html(r['method'])}</td><td>{escape_html(r['marker_name'])}</td></tr>"
+        f"<tr>"
+        f"<td>{escape_html(r['student_id'])}</td>"
+        f"<td>{escape_html(r['full_name'])}</td>"
+        f"<td>{escape_html(r['grade_section'])}</td>"
+        f"<td>{status_badge(r['status'])}</td>"
+        f"<td>{escape_html(r['remarks'] or '')}</td>"
+        f"<td>{escape_html(r['method'])}</td>"
+        f"<td>{escape_html(r['marker_name'])}</td>"
+        f"</tr>"
         for r in records
     ) or "<tr><td colspan='7'>No attendance records found for this date.</td></tr>"
 
     content = f"""
-    <div class=\"card\">
+    <div class="card">
         <h2>Attendance Reports</h2>
-        <form method=\"GET\">
+        <form method="GET">
             <label>Select Date</label>
-            <input type=\"date\" name=\"report_date\" value=\"{report_date}\">
-            <button type=\"submit\">View Report</button>
+            <input type="date" name="report_date" value="{report_date}">
+            <button type="submit">View Report</button>
         </form>
-        <a class=\"btn-link\" href=\"{url_for('export_csv', report_date=report_date)}\">Export CSV</a>
+        <a class="btn-link" href="{url_for('export_csv', report_date=report_date)}">Export CSV</a>
     </div>
-    <div class=\"card\">
+
+    <div class="card">
         <h3>Attendance Report for {report_date}</h3>
         <table>
-            <thead><tr><th>Student ID</th><th>Name</th><th>Grade / Section</th><th>Status</th><th>Remarks</th><th>Method</th><th>Marked By</th></tr></thead>
+            <thead>
+                <tr>
+                    <th>Student ID</th>
+                    <th>Name</th>
+                    <th>Grade / Section</th>
+                    <th>Status</th>
+                    <th>Remarks</th>
+                    <th>Method</th>
+                    <th>Marked By</th>
+                </tr>
+            </thead>
             <tbody>{rows}</tbody>
         </table>
     </div>
@@ -869,29 +1174,46 @@ def export_csv():
         return redirect(url_for("login"))
 
     report_date = request.args.get("report_date", str(date.today()))
+
     conn = get_db_connection()
-    records = conn.execute(
-        """
-        SELECT a.attendance_date, s.student_id, s.full_name, s.grade_section, a.status, a.remarks, a.method
+    records = conn.execute("""
+        SELECT a.attendance_date, s.student_id, s.full_name, s.grade_section,
+               a.status, a.remarks, a.method
         FROM attendance a
         JOIN students s ON a.student_id = s.id
         WHERE a.attendance_date = ?
         ORDER BY s.full_name ASC
-        """,
-        (report_date,)
-    ).fetchall()
+    """, (report_date,)).fetchall()
     conn.close()
 
     output = io.StringIO()
     writer = csv.writer(output)
-    writer.writerow(["Attendance Date", "Student ID", "Full Name", "Grade/Section", "Status", "Remarks", "Method"])
+    writer.writerow([
+        "Attendance Date", "Student ID", "Full Name",
+        "Grade/Section", "Status", "Remarks", "Method"
+    ])
+
     for row in records:
-        writer.writerow([row["attendance_date"], row["student_id"], row["full_name"], row["grade_section"], row["status"], row["remarks"] or "", row["method"]])
+        writer.writerow([
+            row["attendance_date"],
+            row["student_id"],
+            row["full_name"],
+            row["grade_section"],
+            row["status"],
+            row["remarks"] or "",
+            row["method"]
+        ])
 
     memory_file = io.BytesIO(output.getvalue().encode("utf-8"))
     memory_file.seek(0)
     output.close()
-    return send_file(memory_file, mimetype="text/csv", as_attachment=True, download_name=f"attendance_{report_date}.csv")
+
+    return send_file(
+        memory_file,
+        mimetype="text/csv",
+        as_attachment=True,
+        download_name=f"attendance_{report_date}.csv"
+    )
 
 
 init_db()
